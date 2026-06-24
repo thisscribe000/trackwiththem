@@ -4,7 +4,7 @@ from datetime import datetime, timezone
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
 from telegram.ext import ContextTypes
 
-from bot.copy import (
+from bot.phrases import (
     DASHBOARD_EMPTY,
     DASHBOARD_HEADER,
     HISTORY_EMPTY,

@@ -5,7 +5,7 @@ import httpx
 from telegram import Update
 from telegram.ext import ContextTypes, MessageHandler, filters
 
-from bot.copy import progress_bar
+from bot.phrases import progress_bar
 from config import DATABASE_URL
 from core.carrier_detect import detect_carrier
 from core.local_carriers.registry import get_tracking_result

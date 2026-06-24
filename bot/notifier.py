@@ -4,7 +4,7 @@ import random
 from telegram import Bot
 from telegram.error import TelegramError
 
-from bot.copy import (
+from bot.phrases import (
     CUSTOMS_DELAY_WARNING,
     DELIVERED_FINAL,
     STICKERS,
