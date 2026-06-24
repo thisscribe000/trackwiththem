@@ -32,7 +32,18 @@ async def start_command(update, context):
     )
 
 
-async def _startup_health_check(app: Application) -> None:
+async def _startup(app: Application) -> None:
+    scheduler = AsyncIOScheduler()
+    scheduler.add_job(
+        poll_all_active_packages,
+        trigger="interval",
+        hours=POLL_INTERVAL_HOURS,
+        args=[app.bot],
+        id="poll_packages",
+        replace_existing=True,
+    )
+    scheduler.start()
+
     bot_user = await app.bot.get_me()
     db_ok = await test_connection()
 
@@ -59,20 +70,9 @@ def main() -> None:
     app = (
         Application.builder()
         .token(token)
-        .post_init(_startup_health_check)
+        .post_init(_startup)
         .build()
     )
-
-    scheduler = AsyncIOScheduler()
-    scheduler.add_job(
-        poll_all_active_packages,
-        trigger="interval",
-        hours=POLL_INTERVAL_HOURS,
-        args=[app.bot],
-        id="poll_packages",
-        replace_existing=True,
-    )
-    scheduler.start()
 
     app.add_handler(CommandHandler("start", start_command))
     app.add_handler(CommandHandler("track", track_command))
