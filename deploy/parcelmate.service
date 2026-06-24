@@ -1,0 +1,20 @@
+[Unit]
+Description=TrackWithThem — Universal Package Tracking Telegram Bot
+After=network.target postgresql.service
+Wants=postgresql.service
+
+[Service]
+Type=simple
+User=trackwiththem
+Group=trackwiththem
+WorkingDirectory=/opt/trackwiththem
+EnvironmentFile=/etc/trackwiththem/.env
+ExecStart=/opt/trackwiththem/venv/bin/python /opt/trackwiththem/bot/main.py
+Restart=on-failure
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=trackwiththem
+
+[Install]
+WantedBy=multi-user.target

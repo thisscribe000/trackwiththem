@@ -1,0 +1,15 @@
+# Local dev only — production uses the VPS's own Postgres instance.
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: trackwiththem
+      POSTGRES_PASSWORD: trackwiththem
+      POSTGRES_DB: trackwiththem
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+volumes:
+  pgdata:
