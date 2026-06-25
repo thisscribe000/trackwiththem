@@ -1,4 +1,5 @@
 from datetime import datetime, timezone
+from enum import Enum
 
 from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, String, Text
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
@@ -77,3 +78,75 @@ class StatusHistory(Base):
     )
 
     package: Mapped[TrackedPackage] = relationship(back_populates="status_history")
+
+
+class ShipmentStatus(str, Enum):
+    PREPARING = "PREPARING"
+    AT_PARK = "AT_PARK"
+    IN_TRANSIT = "IN_TRANSIT"
+    ARRIVED = "ARRIVED"
+    DELIVERED = "DELIVERED"
+    CANCELLED = "CANCELLED"
+
+
+class Shipment(Base):
+    __tablename__ = "shipments"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    share_code: Mapped[str] = mapped_column(
+        String(6), unique=True, nullable=False, index=True
+    )
+    sender_user_id: Mapped[int] = mapped_column(
+        Integer, ForeignKey("users.id"), nullable=False
+    )
+    receiver_phone: Mapped[str] = mapped_column(String(20), nullable=False)
+    receiver_user_id: Mapped[int | None] = mapped_column(
+        Integer, ForeignKey("users.id"), nullable=True
+    )
+    description: Mapped[str] = mapped_column(String(255), nullable=False)
+    origin: Mapped[str] = mapped_column(String(255), nullable=False)
+    destination: Mapped[str] = mapped_column(String(255), nullable=False)
+    bus_company: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    bus_flight_number: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    status: Mapped[ShipmentStatus] = mapped_column(
+        String(20), nullable=False, default=ShipmentStatus.PREPARING
+    )
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        default=lambda: datetime.now(timezone.utc),
+        onupdate=lambda: datetime.now(timezone.utc),
+    )
+
+    sender: Mapped[User] = relationship(
+        foreign_keys=[sender_user_id], backref="sent_shipments"
+    )
+    receiver: Mapped[User | None] = relationship(
+        foreign_keys=[receiver_user_id], backref="received_shipments"
+    )
+    status_history: Mapped[list["ShipmentStatusHistory"]] = relationship(
+        back_populates="shipment", cascade="all, delete-orphan"
+    )
+
+
+class ShipmentStatusHistory(Base):
+    __tablename__ = "shipment_status_history"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    shipment_id: Mapped[int] = mapped_column(
+        Integer, ForeignKey("shipments.id"), nullable=False
+    )
+    status: Mapped[str] = mapped_column(String(20), nullable=False)
+    location: Mapped[str | None] = mapped_column(Text, nullable=True)
+    description: Mapped[str | None] = mapped_column(Text, nullable=True)
+    updated_by: Mapped[str] = mapped_column(
+        String(10), nullable=False, default="sender"
+    )
+    timestamp: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)
+    )
+
+    shipment: Mapped[Shipment] = relationship(back_populates="status_history")

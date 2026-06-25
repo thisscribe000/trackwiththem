@@ -8,8 +8,13 @@ import httpx
 
 from config import TRACK17_API_KEY
 
-API_BASE = "https://api.17track.net/track/v2"
+API_BASE = "https://api.17track.net/track/v2.4"
 MAX_RETRIES = 2
+
+CARRIER_CODE_MAP: dict[str, int] = {
+    "royalmail": 11031,
+    "parcelforce": 11033,
+}
 
 
 class PackageStatus(Enum):
@@ -41,27 +46,17 @@ class TrackingResult:
     last_updated: datetime | None = None
 
 
-def _map_17track_status(raw: str) -> tuple[PackageStatus, str]:
-    mapping: dict[str, tuple[PackageStatus, str]] = {
-        "10": (PackageStatus.PENDING, "Pending"),
-        "11": (PackageStatus.PENDING, "Information received"),
-        "20": (PackageStatus.IN_TRANSIT, "In transit"),
-        "21": (PackageStatus.IN_TRANSIT, "Departed"),
-        "22": (PackageStatus.IN_TRANSIT, "Arrived"),
-        "23": (PackageStatus.IN_TRANSIT, "In transit"),
-        "30": (PackageStatus.CUSTOMS, "Customs clearance"),
-        "31": (PackageStatus.CUSTOMS, "Customs cleared"),
-        "35": (PackageStatus.CUSTOMS, "Customs hold"),
-        "40": (PackageStatus.OUT_FOR_DELIVERY, "Out for delivery"),
-        "41": (PackageStatus.OUT_FOR_DELIVERY, "Ready for pickup"),
-        "50": (PackageStatus.DELIVERED, "Delivered"),
-        "51": (PackageStatus.DELIVERED, "Delivery confirmed"),
-        "60": (PackageStatus.EXCEPTION, "Exception"),
-        "70": (PackageStatus.EXCEPTION, "Returning"),
-        "71": (PackageStatus.EXCEPTION, "Return to sender"),
-        "80": (PackageStatus.EXCEPTION, "Returned"),
-    }
-    return mapping.get(raw, (PackageStatus.UNKNOWN, "Unknown"))
+STATUS_MAP: dict[str, PackageStatus] = {
+    "NotFound": PackageStatus.PENDING,
+    "InfoReceived": PackageStatus.PENDING,
+    "InTransit": PackageStatus.IN_TRANSIT,
+    "Expired": PackageStatus.EXCEPTION,
+    "AvailableForPickup": PackageStatus.OUT_FOR_DELIVERY,
+    "OutForDelivery": PackageStatus.OUT_FOR_DELIVERY,
+    "PickUp": PackageStatus.OUT_FOR_DELIVERY,
+    "Delivered": PackageStatus.DELIVERED,
+    "Alert": PackageStatus.EXCEPTION,
+}
 
 
 def normalize_result(
@@ -70,28 +65,39 @@ def normalize_result(
     carrier_name: str,
     raw_data: dict[str, Any],
 ) -> TrackingResult:
-    track_info = raw_data.get("track", {})
-    last_event = track_info.get("lastEvent", "") or ""
-    raw_status = str(track_info.get("statusCode", ""))
+    track_info = raw_data.get("track_info", {})
+    latest_status = track_info.get("latest_status", {}) or {}
+    raw_status = str(latest_status.get("status", ""))
+    status = STATUS_MAP.get(raw_status, PackageStatus.UNKNOWN)
 
-    status, _ = _map_17track_status(raw_status)
+    providers = (track_info.get("tracking") or {}).get("providers", []) or []
+    events: list[dict] = []
+    for p in providers:
+        events.extend(p.get("events", []) or [])
 
-    checkpoints_raw = track_info.get("checkpoints", []) or []
     checkpoints: list[Checkpoint] = []
-    for cp in checkpoints_raw:
-        ts = _parse_timestamp(cp.get("time"))
+    for ev in events:
+        ts = _parse_timestamp(ev.get("event_timestamp") or ev.get("time_raw"))
         checkpoints.append(
             Checkpoint(
-                location=cp.get("location", "") or "",
-                description=cp.get("description", "") or "",
+                location=ev.get("event_location", "") or "",
+                description=ev.get("event_description", "") or "",
                 timestamp=ts,
-                raw_status=str(cp.get("statusCode", "")),
+                raw_status=str(ev.get("event_status_code", "")),
             )
         )
-    checkpoints.reverse()
 
-    last_updated = _parse_timestamp(track_info.get("updated"))
-    est_delivery = _parse_timestamp(track_info.get("destinationEstimatedDeliveryDate"))
+    last_updated = None
+    for p in providers:
+        sync_time = _parse_timestamp(p.get("latest_sync_time"))
+        if sync_time and (last_updated is None or sync_time > last_updated):
+            last_updated = sync_time
+
+    time_metrics = track_info.get("time_metrics", {}) or {}
+    est_date = time_metrics.get("estimated_delivery_date", {}) or {}
+    est_delivery = _parse_timestamp(est_date.get("from"))
+    if est_delivery is None:
+        est_delivery = _parse_timestamp(track_info.get("destinationEstimatedDeliveryDate"))
     if est_delivery is None:
         est_delivery = _parse_timestamp(track_info.get("originEstimatedDeliveryDate"))
 
@@ -151,12 +157,16 @@ async def _retry_async(
     raise RuntimeError(f"Request failed after {MAX_RETRIES} retries") from last_exc
 
 
+def _resolve_carrier_code(carrier_code: str) -> int | str:
+    return CARRIER_CODE_MAP.get(carrier_code, carrier_code)
+
+
 async def register_number(tracking_number: str, carrier_code: str) -> dict[str, Any]:
     headers = {"17token": TRACK17_API_KEY}
     payload = [
         {
             "number": tracking_number,
-            "carrier": carrier_code,
+            "carrier": _resolve_carrier_code(carrier_code),
         }
     ]
 
@@ -171,7 +181,7 @@ async def fetch_tracking_info(
     payload = [
         {
             "number": tracking_number,
-            "carrier": carrier_code,
+            "carrier": _resolve_carrier_code(carrier_code),
         }
     ]
 
@@ -188,7 +198,8 @@ async def get_tracking_result(
 ) -> TrackingResult:
     data = await fetch_tracking_info(tracking_number, carrier_code)
 
-    accepted = data.get("accepted", []) or []
+    inner = data.get("data", {}) or {}
+    accepted = inner.get("accepted", []) or []
     if not accepted:
         raise ValueError("Tracking number not found by any carrier")
 

@@ -54,12 +54,24 @@ async def handle_text_message(
 
     text = update.message.text.strip()
 
-    if text.startswith("/"):
+    if context.user_data.get("pending_rename"):
+        if not text.startswith("/"):
+            from bot.handlers.dashboard import handle_rename_text
+            await handle_rename_text(update, context)
         return
 
-    if context.user_data.get("pending_rename"):
-        from bot.handlers.dashboard import handle_rename_text
-        await handle_rename_text(update, context)
+    if context.user_data.get("send_step"):
+        from bot.handlers.send import handle_send_text
+        await handle_send_text(update, context)
+        return
+
+    if text.startswith("/"):
+        return
+        return
+
+    if context.user_data.get("send_step"):
+        from bot.handlers.send import handle_send_text
+        await handle_send_text(update, context)
         return
 
     await _handle_tracking(update, text)

@@ -34,7 +34,13 @@ CARRIER_PATTERNS: list[dict[str, Any]] = [
         "patterns": [
             re.compile(r"^1Z[A-Z0-9]{16}$"),
             re.compile(r"^\d{9}$"),
-            re.compile(r"^[A-Z]{2}\d{9}[A-Z]{2}$"),
+        ],
+    },
+    {
+        "carrier_code": "royalmail",
+        "carrier_name": "Royal Mail",
+        "patterns": [
+            re.compile(r"^[A-Z]{2}\d{9}GB$"),
         ],
     },
     {
@@ -194,6 +200,7 @@ def _compute_confidence(
         "ups": 0.15,
         "usps": 0.10,
         "fedex": 0.05,
+        "royalmail": 0.10,
     }
 
     bonus = unique_prefixes.get(carrier_code, 0.0)

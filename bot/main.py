@@ -12,6 +12,13 @@ from telegram.ext import (
 
 import config
 from bot.handlers.dashboard import dashboard_callback, mypackages_command
+from bot.handlers.send import send_command
+from bot.handlers.shipment_dashboard import (
+    claim_command,
+    shipment_callback,
+    shipments_command,
+    update_command,
+)
 from bot.handlers.track import handle_text_message, track_command
 from core.poller import poll_all_active_packages
 from db.session import test_connection
@@ -77,8 +84,13 @@ def main() -> None:
     app.add_handler(CommandHandler("start", start_command))
     app.add_handler(CommandHandler("track", track_command))
     app.add_handler(CommandHandler("mypackages", mypackages_command))
+    app.add_handler(CommandHandler("send", send_command))
+    app.add_handler(CommandHandler("shipments", shipments_command))
+    app.add_handler(CommandHandler("update", update_command))
+    app.add_handler(CommandHandler("claim", claim_command))
 
     app.add_handler(CallbackQueryHandler(dashboard_callback, pattern="^dash_"))
+    app.add_handler(CallbackQueryHandler(shipment_callback, pattern="^ship_"))
 
     app.add_handler(
         MessageHandler(filters.TEXT & ~filters.COMMAND, handle_text_message)
