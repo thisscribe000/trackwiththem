@@ -102,6 +102,13 @@ CARRIER_PATTERNS: list[dict[str, Any]] = [
             re.compile(r"^NP\d{9,12}$", re.IGNORECASE),
         ],
     },
+    {
+        "carrier_code": "speedaf",
+        "carrier_name": "Speedaf Express",
+        "patterns": [
+            re.compile(r"^NG\d{12}$", re.IGNORECASE),
+        ],
+    },
 ]
 
 

@@ -161,14 +161,17 @@ def _resolve_carrier_code(carrier_code: str) -> int | str:
     return CARRIER_CODE_MAP.get(carrier_code, carrier_code)
 
 
+def _make_payload(tracking_number: str, carrier_code: str) -> list[dict[str, Any]]:
+    entry: dict[str, Any] = {"number": tracking_number}
+    resolved = _resolve_carrier_code(carrier_code)
+    if resolved:
+        entry["carrier"] = resolved
+    return [entry]
+
+
 async def register_number(tracking_number: str, carrier_code: str) -> dict[str, Any]:
     headers = {"17token": TRACK17_API_KEY}
-    payload = [
-        {
-            "number": tracking_number,
-            "carrier": _resolve_carrier_code(carrier_code),
-        }
-    ]
+    payload = _make_payload(tracking_number, carrier_code)
 
     async with httpx.AsyncClient(base_url=API_BASE, headers=headers) as client:
         return await _retry_async(client, "POST", "/register", json_data=payload)
@@ -178,12 +181,7 @@ async def fetch_tracking_info(
     tracking_number: str, carrier_code: str
 ) -> dict[str, Any]:
     headers = {"17token": TRACK17_API_KEY}
-    payload = [
-        {
-            "number": tracking_number,
-            "carrier": _resolve_carrier_code(carrier_code),
-        }
-    ]
+    payload = _make_payload(tracking_number, carrier_code)
 
     async with httpx.AsyncClient(base_url=API_BASE, headers=headers) as client:
         return await _retry_async(

@@ -22,6 +22,7 @@ if missing:
 BOT_TOKEN: str = os.environ["BOT_TOKEN"]
 DATABASE_URL: str = os.environ["DATABASE_URL"]
 TRACK17_API_KEY: str = os.environ["TRACK17_API_KEY"]
+TRACKINGMORE_API_KEY: str | None = os.environ.get("TRACKINGMORE_API_KEY")
 
 LOG_LEVEL: str = os.environ.get("LOG_LEVEL", "INFO")
 LOG_FILE: str = os.environ.get("LOG_FILE", "trackwiththem.log")

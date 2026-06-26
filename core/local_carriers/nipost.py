@@ -8,7 +8,9 @@ from core.track17_client import Checkpoint, PackageStatus, TrackingResult
 
 logger = logging.getLogger(__name__)
 
-TRACKING_URL = "https://track.nipost.gov.ng/"
+DOMESTIC_TRACKING_URL = "https://nipost.gov.ng/track-trace-domestic-result"
+INTERNATIONAL_TRACKING_URL = "https://nipost.gov.ng/track-and-trace-result"
+LEGACY_TRACKING_URL = "https://track.nipost.gov.ng/"
 
 STATUS_MAP: dict[str, PackageStatus] = {
     "pending": PackageStatus.PENDING,
@@ -42,67 +44,75 @@ def _map_status(text: str) -> PackageStatus:
     return PackageStatus.UNKNOWN
 
 
+def _is_domestic(tracking_number: str) -> bool:
+    return tracking_number.startswith("NG") or tracking_number.upper().startswith("NP")
+
+
 async def get_tracking_result(
     tracking_number: str, carrier_code: str = "nipost", carrier_name: str = "NIPOST"
 ) -> TrackingResult:
-    try:
-        async with httpx.AsyncClient(timeout=15, follow_redirects=True) as client:
-            response = await client.get(
-                TRACKING_URL,
-                params={"tracking_number": tracking_number},
-            )
-            response.raise_for_status()
-    except Exception as e:
-        logger.warning("NIPOST scraper failed for %s: %s", tracking_number, e)
-        return TrackingResult(
-            tracking_number=tracking_number,
-            carrier_code=carrier_code,
-            carrier_name=carrier_name,
-            status=PackageStatus.UNKNOWN,
-            last_updated=datetime.now(timezone.utc),
-        )
+    urls_to_try = [
+        DOMESTIC_TRACKING_URL if _is_domestic(tracking_number) else INTERNATIONAL_TRACKING_URL,
+        LEGACY_TRACKING_URL,
+    ]
 
-    try:
-        soup = BeautifulSoup(response.text, "lxml")
-        status_elements = soup.select(
-            ".status, .track-result, table tr td, .event, .update, .timeline li"
-        )
-
-        checkpoints: list[Checkpoint] = []
-        for el in status_elements:
-            text = el.get_text(strip=True)
-            if not text or len(text) < 5:
-                continue
-            status = _map_status(text)
-            checkpoints.append(
-                Checkpoint(
-                    location="",
-                    description=text,
-                    timestamp=datetime.now(timezone.utc),
-                    raw_status=status.value,
-                )
-            )
-
-        latest_status = checkpoints[0].raw_status if checkpoints else PackageStatus.UNKNOWN
+    for url in urls_to_try:
         try:
-            latest_status = PackageStatus(latest_status)
-        except ValueError:
-            latest_status = PackageStatus.UNKNOWN
+            async with httpx.AsyncClient(timeout=15, follow_redirects=True) as client:
+                if LEGACY_TRACKING_URL in url:
+                    response = await client.get(url, params={"tracking_number": tracking_number})
+                else:
+                    response = await client.post(url, data={"trackinginput": tracking_number, "Submit": ""})
+                response.raise_for_status()
+        except Exception as e:
+            logger.warning("NIPOST scraper failed for %s at %s: %s", tracking_number, url, e)
+            continue
 
-        return TrackingResult(
-            tracking_number=tracking_number,
-            carrier_code=carrier_code,
-            carrier_name=carrier_name,
-            status=latest_status,
-            checkpoints=checkpoints,
-            last_updated=datetime.now(timezone.utc),
-        )
-    except Exception as e:
-        logger.warning("NIPOST parsing failed for %s: %s", tracking_number, e)
-        return TrackingResult(
-            tracking_number=tracking_number,
-            carrier_code=carrier_code,
-            carrier_name=carrier_name,
-            status=PackageStatus.UNKNOWN,
-            last_updated=datetime.now(timezone.utc),
-        )
+        try:
+            soup = BeautifulSoup(response.text, "lxml")
+            status_elements = soup.select(
+                ".elementor-shortcode, .track-result, table tr td, "
+                ".status, .event, .update, .timeline li, "
+                ".woocommerce-table, .shop_table tr td"
+            )
+
+            checkpoints: list[Checkpoint] = []
+            for el in status_elements:
+                text = el.get_text(strip=True)
+                if not text or len(text) < 5:
+                    continue
+                status = _map_status(text)
+                checkpoints.append(
+                    Checkpoint(
+                        location="",
+                        description=text,
+                        timestamp=datetime.now(timezone.utc),
+                        raw_status=status.value,
+                    )
+                )
+
+            latest_status = checkpoints[0].raw_status if checkpoints else PackageStatus.UNKNOWN
+            try:
+                latest_status = PackageStatus(latest_status)
+            except ValueError:
+                latest_status = PackageStatus.UNKNOWN
+
+            if checkpoints:
+                return TrackingResult(
+                    tracking_number=tracking_number,
+                    carrier_code=carrier_code,
+                    carrier_name=carrier_name,
+                    status=latest_status,
+                    checkpoints=checkpoints,
+                    last_updated=datetime.now(timezone.utc),
+                )
+        except Exception as e:
+            logger.warning("NIPOST parsing failed for %s at %s: %s", tracking_number, url, e)
+
+    return TrackingResult(
+        tracking_number=tracking_number,
+        carrier_code=carrier_code,
+        carrier_name=carrier_name,
+        status=PackageStatus.UNKNOWN,
+        last_updated=datetime.now(timezone.utc),
+    )

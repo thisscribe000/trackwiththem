@@ -14,6 +14,7 @@
             background: #0a0a0a;
             color: #e5e5e5;
             overflow-x: hidden;
+            -webkit-tap-highlight-color: transparent;
         }
         .grid-bg {
             background-image:
@@ -23,22 +24,28 @@
         }
         .glow {
             position: absolute;
-            width: 500px;
-            height: 500px;
             border-radius: 50%;
             filter: blur(120px);
             pointer-events: none;
             opacity: 0.12;
+            width: 500px;
+            height: 500px;
         }
         .card {
             background: rgba(255,255,255,0.03);
             border: 1px solid rgba(255,255,255,0.06);
             transition: all 0.3s ease;
         }
-        .card:hover {
-            background: rgba(255,255,255,0.06);
+        .card:active {
+            background: rgba(255,255,255,0.08);
             border-color: rgba(255,255,255,0.12);
-            transform: translateY(-4px);
+        }
+        @media (hover: hover) {
+            .card:hover {
+                background: rgba(255,255,255,0.06);
+                border-color: rgba(255,255,255,0.12);
+                transform: translateY(-4px);
+            }
         }
         .tag {
             display: inline-block;
@@ -63,16 +70,254 @@
         section {
             padding: 80px max(24px, calc((100vw - 1200px) / 2));
         }
+
+        .nav-toggle { display: none; }
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 24px;
+        }
+        .hamburger {
+            display: none;
+            flex-direction: column;
+            gap: 5px;
+            cursor: pointer;
+            padding: 4px;
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+        }
+        .hamburger span {
+            display: block;
+            width: 22px;
+            height: 2px;
+            background: #888;
+            border-radius: 2px;
+            transition: all 0.3s ease;
+        }
         @media (max-width: 640px) {
-            .glow { width: 300px; height: 300px; }
-            section { padding: 48px 24px; }
+            .hamburger { display: flex; }
+            .nav-links {
+                display: none;
+                position: absolute;
+                top: 100%;
+                left: 0;
+                right: 0;
+                flex-direction: column;
+                background: #0f0f0f;
+                border-bottom: 1px solid rgba(255,255,255,0.06);
+                padding: 12px 24px 20px;
+                gap: 16px;
+                align-items: flex-start;
+                z-index: 50;
+            }
+            .nav-toggle:checked ~ .nav-links { display: flex; }
+            .nav-toggle:checked ~ .hamburger span:nth-child(1) {
+                transform: rotate(45deg) translate(5px, 5px);
+            }
+            .nav-toggle:checked ~ .hamburger span:nth-child(2) {
+                opacity: 0;
+            }
+            .nav-toggle:checked ~ .hamburger span:nth-child(3) {
+                transform: rotate(-45deg) translate(5px, -5px);
+            }
+            .glow { width: 250px; height: 250px; filter: blur(80px); }
+            section { padding: 40px 20px; }
+        }
+
+        @media (max-width: 400px) {
+            section { padding: 32px 16px; }
+        }
+
+        /* Phone mockups */
+        .phone {
+            background: #121214;
+            border: 2px solid #222;
+            border-radius: 36px;
+            padding: 12px 10px;
+            width: 100%;
+            max-width: 340px;
+            box-shadow: 0 0 0 1px rgba(255,255,255,0.05), 0 20px 60px rgba(0,0,0,0.5);
+            position: relative;
+        }
+        .phone-notch {
+            width: 120px;
+            height: 18px;
+            background: #000;
+            border-radius: 0 0 14px 14px;
+            margin: -12px auto 8px;
+        }
+        .phone-screen {
+            background: #0d0d0f;
+            border-radius: 22px;
+            overflow: hidden;
+            aspect-ratio: 9/19;
+            display: flex;
+            flex-direction: column;
+        }
+        .phone-header {
+            padding: 10px 14px 6px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+        .phone-header .avatar {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            flex-shrink: 0;
+        }
+        .phone-header .name {
+            font-size: 12px;
+            font-weight: 600;
+            color: #fff;
+        }
+        .phone-header .status {
+            font-size: 10px;
+            color: #555;
+        }
+        .chat-area {
+            flex: 1;
+            padding: 8px 10px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            scrollbar-width: none;
+        }
+        .chat-area::-webkit-scrollbar { display: none; }
+        .msg {
+            max-width: 88%;
+            padding: 8px 12px;
+            border-radius: 16px;
+            font-size: 12px;
+            line-height: 1.4;
+            opacity: 0;
+            transform: translateY(8px);
+            transition: opacity 0.4s ease, transform 0.4s ease;
+        }
+        .msg.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .msg.sent {
+            align-self: flex-end;
+            background: #22c55e;
+            color: #000;
+            border-bottom-right-radius: 4px;
+        }
+        .msg.received {
+            align-self: flex-start;
+            background: rgba(255,255,255,0.06);
+            color: #ddd;
+            border-bottom-left-radius: 4px;
+        }
+        .msg.system {
+            align-self: center;
+            background: rgba(255,255,255,0.04);
+            color: #888;
+            font-size: 10px;
+            padding: 4px 12px;
+            border-radius: 100px;
+            max-width: 95%;
+            text-align: center;
+        }
+        .typing-dots {
+            display: flex;
+            gap: 3px;
+            padding: 4px 0;
+        }
+        .typing-dots span {
+            width: 5px;
+            height: 5px;
+            border-radius: 50%;
+            background: #555;
+            animation: typingBounce 1.2s ease infinite;
+        }
+        .typing-dots span:nth-child(2) { animation-delay: 0.2s; }
+        .typing-dots span:nth-child(3) { animation-delay: 0.4s; }
+        @keyframes typingBounce {
+            0%, 60%, 100% { transform: translateY(0); background: #555; }
+            30% { transform: translateY(-4px); background: #888; }
+        }
+
+        .demo-step {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 14px;
+            border-radius: 100px;
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.06);
+            font-size: 12px;
+            color: #555;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+        }
+        .demo-step.active {
+            background: rgba(34,197,94,0.1);
+            border-color: rgba(34,197,94,0.3);
+            color: #22c55e;
+        }
+        .demo-step.done {
+            color: #22c55e;
+        }
+        .demo-step .num {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            font-weight: 600;
+            background: rgba(255,255,255,0.06);
+            flex-shrink: 0;
+        }
+        .demo-step.active .num {
+            background: #22c55e;
+            color: #000;
+        }
+        .demo-step.done .num {
+            background: rgba(34,197,94,0.2);
+            color: #22c55e;
+        }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 2px 10px;
+            border-radius: 100px;
+            font-size: 10px;
+            font-weight: 500;
+        }
+        .status-badge.preparation { background: rgba(255,255,255,0.08); color: #aaa; }
+        .status-badge.transit { background: rgba(34,197,94,0.15); color: #22c55e; }
+        .status-badge.atpark { background: rgba(251,191,36,0.15); color: #fbbf24; }
+        .status-badge.arrived { background: rgba(59,130,246,0.15); color: #60a5fa; }
+        .status-badge.delivered { background: rgba(34,197,94,0.2); color: #22c55e; }
+
+        .flow-arrow {
+            color: #333;
+            font-size: 18px;
+        }
+
+        @media (max-width: 800px) {
+            .phone { max-width: 280px; }
+            .msg { font-size: 11px; padding: 6px 10px; }
         }
     </style>
 </head>
 <body>
 
     <nav style="display:flex;align-items:center;justify-content:space-between;padding:16px max(24px, calc((100vw - 1200px) / 2));position:relative;">
-        <a href="/" style="display:flex;align-items:center;gap:10px;text-decoration:none;">
+        <a href="/" style="display:flex;align-items:center;gap:10px;text-decoration:none;min-height:44px;">
             <svg width="28" height="28" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <rect x="10" y="20" width="80" height="60" rx="8" fill="#22c55e" opacity="0.2"/>
                 <rect x="20" y="30" width="60" height="40" rx="4" fill="#22c55e"/>
@@ -83,33 +328,40 @@
             </svg>
             <span style="font-weight:800;font-size:20px;color:white;letter-spacing:-0.5px;">TrackWithThem</span>
         </a>
-        <div style="display:flex;gap:24px;">
-            <a href="#features" style="color:#888;text-decoration:none;font-size:13px;font-weight:500;">Features</a>
-            <a href="#how-it-works" style="color:#888;text-decoration:none;font-size:13px;font-weight:500;">How it Works</a>
-            <a href="https://t.me/trackwiththem_bot" style="color:#22c55e;text-decoration:none;font-size:13px;font-weight:600;">Open in Telegram →</a>
+        <input type="checkbox" id="nav-toggle" class="nav-toggle">
+        <label for="nav-toggle" class="hamburger" aria-label="Toggle navigation">
+            <span></span>
+            <span></span>
+            <span></span>
+        </label>
+        <div class="nav-links">
+            <a href="#features" style="color:#888;text-decoration:none;font-size:14px;font-weight:500;padding:8px 0;">Features</a>
+            <a href="#how-it-works" style="color:#888;text-decoration:none;font-size:14px;font-weight:500;padding:8px 0;">How it Works</a>
+            <a href="#demo" style="color:#888;text-decoration:none;font-size:14px;font-weight:500;padding:8px 0;">Live Demo</a>
+            <a href="https://t.me/trackwiththem_bot" style="color:#22c55e;text-decoration:none;font-size:14px;font-weight:600;padding:8px 0;">Open in Telegram →</a>
         </div>
     </nav>
 
     <div class="relative grid-bg" style="padding-top:0;">
-        <div class="glow" style="top:-100px;left:-100px;background:#22c55e;"></div>
-        <div class="glow" style="bottom:-100px;right:-100px;background:#3b82f6;"></div>
+        <div class="glow" style="top:-80px;left:-80px;background:#22c55e;"></div>
+        <div class="glow" style="bottom:-80px;right:-80px;background:#3b82f6;"></div>
 
         <section>
             <p class="cmd-line mb-4"><span class="cmd-prompt">$</span> cat README.md</p>
-            <h1 class="text-5xl md:text-8xl font-black tracking-tight text-white mb-6 max-w-5xl">
+            <h1 class="text-4xl sm:text-5xl md:text-8xl font-black tracking-tight text-white mb-4 sm:mb-6">
                 Track <span class="text-green-500">anything</span>
             </h1>
-            <p class="text-lg md:text-xl text-zinc-500 max-w-3xl leading-relaxed mb-8">
+            <p class="text-base sm:text-lg md:text-xl text-zinc-500 max-w-3xl leading-relaxed mb-6 sm:mb-8">
                 Universal package tracking inside Telegram. DHL, FedEx, UPS, USPS, China Post,
                 3,400+ carriers — plus dedicated Nigerian support and P2P sending.
                 All from one bot.
             </p>
-            <div class="flex flex-wrap gap-3">
-                <a href="https://t.me/trackwiththem_bot" target="_blank" class="bg-green-500 text-black px-6 py-3 rounded-xl font-semibold text-sm hover:bg-green-400 transition no-underline inline-flex items-center gap-2">
+            <div class="flex flex-col sm:flex-row gap-3">
+                <a href="https://t.me/trackwiththem_bot" target="_blank" class="bg-green-500 text-black px-6 py-3.5 rounded-xl font-semibold text-sm hover:bg-green-400 transition no-underline inline-flex items-center justify-center gap-2 min-h-[48px]">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 2.5L2.5 10.5L11 13L13.5 21.5L21.5 2.5Z"/></svg>
                     Start Tracking
                 </a>
-                <a href="https://t.me/trackwiththem_bot" target="_blank" class="border border-zinc-700 text-zinc-300 px-6 py-3 rounded-xl font-semibold text-sm hover:bg-zinc-800 transition no-underline inline-block">
+                <a href="https://t.me/trackwiththem_bot" target="_blank" class="border border-zinc-700 text-zinc-300 px-6 py-3.5 rounded-xl font-semibold text-sm hover:bg-zinc-800 transition no-underline inline-flex items-center justify-center min-h-[48px]">
                     @trackwiththem_bot
                 </a>
             </div>
@@ -117,10 +369,10 @@
 
         <section id="features" class="scroll-mt-16" style="padding-top:0;">
             <p class="cmd-line mb-6"><span class="cmd-prompt">$</span> ls features/</p>
-            <div class="grid md:grid-cols-3 gap-4">
-                <div class="card rounded-2xl p-6">
+            <div class="grid md:grid-cols-3 gap-3 sm:gap-4">
+                <div class="card rounded-2xl p-5 sm:p-6">
                     <div class="text-2xl mb-3">🌍</div>
-                    <h3 class="text-white font-bold text-lg mb-2">Global Coverage</h3>
+                    <h3 class="text-white font-bold text-base sm:text-lg mb-2">Global Coverage</h3>
                     <p class="text-zinc-500 text-sm leading-relaxed">
                         Track via 17TRACK — 3,400+ carriers across 230 countries.
                         DHL, FedEx, UPS, USPS, Aramex, Canada Post, Australia Post, and more.
@@ -132,9 +384,9 @@
                         <span class="tag">USPS</span>
                     </div>
                 </div>
-                <div class="card rounded-2xl p-6">
+                <div class="card rounded-2xl p-5 sm:p-6">
                     <div class="text-2xl mb-3">🇳🇬</div>
-                    <h3 class="text-white font-bold text-lg mb-2">Nigeria First</h3>
+                    <h3 class="text-white font-bold text-base sm:text-lg mb-2">Nigeria First</h3>
                     <p class="text-zinc-500 text-sm leading-relaxed">
                         Dedicated scrapers for GIG Logistics and NIPOST.
                         Built for the Nigerian delivery ecosystem.
@@ -142,11 +394,12 @@
                     <div class="flex flex-wrap gap-2 mt-4">
                         <span class="tag">GIG Logistics</span>
                         <span class="tag">NIPOST</span>
+                        <span class="tag">Speedaf</span>
                     </div>
                 </div>
-                <div class="card rounded-2xl p-6">
+                <div class="card rounded-2xl p-5 sm:p-6">
                     <div class="text-2xl mb-3">🤝</div>
-                    <h3 class="text-white font-bold text-lg mb-2">P2P Sending</h3>
+                    <h3 class="text-white font-bold text-base sm:text-lg mb-2">P2P Sending</h3>
                     <p class="text-zinc-500 text-sm leading-relaxed">
                         Send parcels to friends. No tracking number needed — just a phone number.
                         Update progress, notify receiver, get real-time status.
@@ -161,85 +414,364 @@
 
         <section id="how-it-works" class="scroll-mt-16">
             <p class="cmd-line mb-6"><span class="cmd-prompt">$</span> cat usage.sh</p>
-            <div class="grid md:grid-cols-4 gap-4">
-                <div class="card rounded-2xl p-6 md:p-8">
+            <div class="grid sm:grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
+                <div class="card rounded-2xl p-5 sm:p-6 md:p-8">
                     <div class="w-8 h-8 rounded-full bg-green-500/10 border border-green-500/20 flex items-center justify-center text-green-500 font-bold text-sm mb-4">1</div>
-                    <h3 class="text-white font-bold text-lg mb-2">Open the bot</h3>
+                    <h3 class="text-white font-bold text-base sm:text-lg mb-2">Open the bot</h3>
                     <p class="text-zinc-500 text-sm">Start <a href="https://t.me/trackwiththem_bot" class="text-green-500 no-underline hover:underline">@trackwiththem_bot</a> on Telegram and hit /start.</p>
                 </div>
-                <div class="card rounded-2xl p-6 md:p-8">
+                <div class="card rounded-2xl p-5 sm:p-6 md:p-8">
                     <div class="w-8 h-8 rounded-full bg-green-500/10 border border-green-500/20 flex items-center justify-center text-green-500 font-bold text-sm mb-4">2</div>
-                    <h3 class="text-white font-bold text-lg mb-2">Send a number</h3>
+                    <h3 class="text-white font-bold text-base sm:text-lg mb-2">Send a number</h3>
                     <p class="text-zinc-500 text-sm">Paste any tracking number — DHL, FedEx, GIG, or a Nigerian bus waybill. The bot detects the carrier automatically.</p>
                 </div>
-                <div class="card rounded-2xl p-6 md:p-8">
+                <div class="card rounded-2xl p-5 sm:p-6 md:p-8">
                     <div class="w-8 h-8 rounded-full bg-green-500/10 border border-green-500/20 flex items-center justify-center text-green-500 font-bold text-sm mb-4">3</div>
-                    <h3 class="text-white font-bold text-lg mb-2">Or send P2P</h3>
+                    <h3 class="text-white font-bold text-base sm:text-lg mb-2">Or send P2P</h3>
                     <p class="text-zinc-500 text-sm">Use /send, describe the item, enter your friend's phone. Get a shareable code they can track with /claim.</p>
                 </div>
-                <div class="card rounded-2xl p-6 md:p-8">
+                <div class="card rounded-2xl p-5 sm:p-6 md:p-8">
                     <div class="w-8 h-8 rounded-full bg-green-500/10 border border-green-500/20 flex items-center justify-center text-green-500 font-bold text-sm mb-4">4</div>
-                    <h3 class="text-white font-bold text-lg mb-2">Sit back</h3>
+                    <h3 class="text-white font-bold text-base sm:text-lg mb-2">Sit back</h3>
                     <p class="text-zinc-500 text-sm">The bot polls every 4 hours and notifies you on every status change. Use /mypackages to see everything at a glance.</p>
                 </div>
+            </div>
+        </section>
+
+        <section id="demo" class="scroll-mt-16">
+            <p class="cmd-line mb-6"><span class="cmd-prompt">$</span> ./demo-p2p.sh</p>
+            <h2 class="text-2xl sm:text-3xl font-black text-white mb-2">See P2P in action</h2>
+            <p class="text-zinc-500 text-sm mb-8">Watch how a sender creates a shipment and the receiver claims it — end to end.</p>
+
+            <div class="flex flex-wrap gap-2 mb-8 justify-center" id="step-indicators">
+                <div class="demo-step active" data-step="0">
+                    <span class="num">1</span> Create
+                </div>
+                <span class="flow-arrow">→</span>
+                <div class="demo-step" data-step="1">
+                    <span class="num">2</span> Share
+                </div>
+                <span class="flow-arrow">→</span>
+                <div class="demo-step" data-step="2">
+                    <span class="num">3</span> Claim
+                </div>
+                <span class="flow-arrow">→</span>
+                <div class="demo-step" data-step="3">
+                    <span class="num">4</span> Update
+                </div>
+                <span class="flow-arrow">→</span>
+                <div class="demo-step" data-step="4">
+                    <span class="num">5</span> Delivered
+                </div>
+            </div>
+
+            <div class="flex flex-col lg:flex-row items-start justify-center gap-6 lg:gap-10">
+
+                <div class="flex-1 flex flex-col items-center">
+                    <div class="text-zinc-400 text-xs font-semibold mb-3 tracking-wider uppercase flex items-center gap-2">
+                        <span class="w-2 h-2 rounded-full bg-green-500"></span> Sender
+                    </div>
+                    <div class="phone" id="sender-phone">
+                        <div class="phone-notch"></div>
+                        <div class="phone-screen">
+                            <div class="phone-header">
+                                <div class="avatar" style="background:#22c55e;color:#000;">📦</div>
+                                <div>
+                                    <div class="name">TrackWithThem</div>
+                                    <div class="status">bot</div>
+                                </div>
+                            </div>
+                            <div class="chat-area" id="sender-chat"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex-1 flex flex-col items-center">
+                    <div class="text-zinc-400 text-xs font-semibold mb-3 tracking-wider uppercase flex items-center gap-2">
+                        <span class="w-2 h-2 rounded-full bg-blue-500"></span> Receiver
+                    </div>
+                    <div class="phone" id="receiver-phone">
+                        <div class="phone-notch"></div>
+                        <div class="phone-screen">
+                            <div class="phone-header">
+                                <div class="avatar" style="background:#3b82f6;color:#fff;">👤</div>
+                                <div>
+                                    <div class="name">Chisom</div>
+                                    <div class="status">online</div>
+                                </div>
+                            </div>
+                            <div class="chat-area" id="receiver-chat"></div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="flex justify-center mt-8 gap-4">
+                <button id="play-btn" class="bg-green-500 text-black px-6 py-3 rounded-xl font-semibold text-sm hover:bg-green-400 transition inline-flex items-center gap-2 min-h-[44px]">
+                    <svg id="play-icon" width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><polygon points="5,3 19,12 5,21"/></svg>
+                    <span id="play-label">Play Demo</span>
+                </button>
+                <button id="reset-btn" class="border border-zinc-700 text-zinc-400 px-6 py-3 rounded-xl font-semibold text-sm hover:bg-zinc-800 transition inline-flex items-center gap-2 min-h-[44px]">
+                    ↺ Reset
+                </button>
             </div>
         </section>
 
         <section>
             <p class="cmd-line mb-6"><span class="cmd-prompt">$</span> cat commands.md</p>
             <div class="card rounded-2xl overflow-hidden">
-                <table class="w-full text-sm">
-                    <thead>
-                        <tr class="border-b border-zinc-800">
-                            <th class="text-left p-4 text-zinc-400 font-medium font-mono">Command</th>
-                            <th class="text-left p-4 text-zinc-400 font-medium">What it does</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-zinc-800/50">
-                        <tr class="hover:bg-zinc-800/20 transition">
-                            <td class="p-4 text-green-500 font-mono">/track &lt;number&gt;</td>
-                            <td class="p-4 text-zinc-400">Track any package by number</td>
-                        </tr>
-                        <tr class="hover:bg-zinc-800/20 transition">
-                            <td class="p-4 text-green-500 font-mono">/send</td>
-                            <td class="p-4 text-zinc-400">Create a P2P shipment wizard</td>
-                        </tr>
-                        <tr class="hover:bg-zinc-800/20 transition">
-                            <td class="p-4 text-green-500 font-mono">/mypackages</td>
-                            <td class="p-4 text-zinc-400">Dashboard of tracked packages</td>
-                        </tr>
-                        <tr class="hover:bg-zinc-800/20 transition">
-                            <td class="p-4 text-green-500 font-mono">/shipments</td>
-                            <td class="p-4 text-zinc-400">View P2P shipments (sent & received)</td>
-                        </tr>
-                        <tr class="hover:bg-zinc-800/20 transition">
-                            <td class="p-4 text-green-500 font-mono">/update &lt;code&gt;</td>
-                            <td class="p-4 text-zinc-400">Advance a shipment's status</td>
-                        </tr>
-                        <tr class="hover:bg-zinc-800/20 transition">
-                            <td class="p-4 text-green-500 font-mono">/claim &lt;code&gt;</td>
-                            <td class="p-4 text-zinc-400">Claim a shipment sent to you</td>
-                        </tr>
-                    </tbody>
-                </table>
+                <div class="overflow-x-auto -mx-1 px-1">
+                    <table class="w-full text-sm min-w-[400px]">
+                        <thead>
+                            <tr class="border-b border-zinc-800">
+                                <th class="text-left p-4 text-zinc-400 font-medium font-mono">Command</th>
+                                <th class="text-left p-4 text-zinc-400 font-medium">What it does</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-zinc-800/50">
+                            <tr class="hover:bg-zinc-800/20 transition">
+                                <td class="p-4 text-green-500 font-mono whitespace-nowrap">/track &lt;number&gt;</td>
+                                <td class="p-4 text-zinc-400">Track any package by number</td>
+                            </tr>
+                            <tr class="hover:bg-zinc-800/20 transition">
+                                <td class="p-4 text-green-500 font-mono whitespace-nowrap">/send</td>
+                                <td class="p-4 text-zinc-400">Create a P2P shipment wizard</td>
+                            </tr>
+                            <tr class="hover:bg-zinc-800/20 transition">
+                                <td class="p-4 text-green-500 font-mono whitespace-nowrap">/mypackages</td>
+                                <td class="p-4 text-zinc-400">Dashboard of tracked packages</td>
+                            </tr>
+                            <tr class="hover:bg-zinc-800/20 transition">
+                                <td class="p-4 text-green-500 font-mono whitespace-nowrap">/shipments</td>
+                                <td class="p-4 text-zinc-400">View P2P shipments (sent & received)</td>
+                            </tr>
+                            <tr class="hover:bg-zinc-800/20 transition">
+                                <td class="p-4 text-green-500 font-mono whitespace-nowrap">/update &lt;code&gt;</td>
+                                <td class="p-4 text-zinc-400">Advance a shipment's status</td>
+                            </tr>
+                            <tr class="hover:bg-zinc-800/20 transition">
+                                <td class="p-4 text-green-500 font-mono whitespace-nowrap">/claim &lt;code&gt;</td>
+                                <td class="p-4 text-zinc-400">Claim a shipment sent to you</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </section>
 
         <section class="text-center">
             <p class="cmd-line mb-4"><span class="cmd-prompt">$</span> ./start.sh</p>
-            <a href="https://t.me/trackwiththem_bot" target="_blank" class="bg-green-500 text-black px-8 py-4 rounded-xl font-bold text-base hover:bg-green-400 transition no-underline inline-flex items-center gap-2">
+            <a href="https://t.me/trackwiththem_bot" target="_blank" class="bg-green-500 text-black w-full sm:w-auto px-8 py-4 rounded-xl font-bold text-base hover:bg-green-400 transition no-underline inline-flex items-center justify-center gap-2 min-h-[52px]">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 2.5L2.5 10.5L11 13L13.5 21.5L21.5 2.5Z"/></svg>
                 Start Tracking on Telegram
             </a>
             <p class="text-zinc-600 text-xs mt-3 font-mono">@trackwiththem_bot — no signup required</p>
         </section>
 
-        <footer style="padding:32px max(24px, calc((100vw - 1200px) / 2));border-top:1px solid rgba(255,255,255,0.05);" class="text-zinc-700 text-xs flex flex-col sm:flex-row justify-between items-center gap-2">
+        <footer style="padding:32px max(24px, calc((100vw - 1200px) / 2));border-top:1px solid rgba(255,255,255,0.05);" class="text-zinc-700 text-xs flex flex-col sm:flex-row justify-between items-center gap-3">
             <span style="font-family:'Inter',monospace;letter-spacing:1px;">2026 <span style="color:#22c55e;">TrackWithThem</span></span>
             <span class="font-mono"><a href="https://paperlinkos.site" class="text-zinc-600 no-underline hover:text-zinc-400">PaperLink OS</a></span>
         </footer>
 
     </div>
+
+    <script>
+        var senderChat = document.getElementById('sender-chat');
+        var receiverChat = document.getElementById('receiver-chat');
+        var steps = document.querySelectorAll('.demo-step');
+        var playBtn = document.getElementById('play-btn');
+        var playIcon = document.getElementById('play-icon');
+        var playLabel = document.getElementById('play-label');
+        var resetBtn = document.getElementById('reset-btn');
+
+        var demoSteps = [
+            { s: [
+                'sent', '/send',
+                'received', 'What are you sending? Describe the item.',
+                'sent', 'Nike Air Max 90',
+                'received', "Receiver\u2019s phone number?",
+                'sent', '08081234567',
+                'received', 'From where?',
+                'sent', 'Lagos, Ikeja',
+                'received', 'Destination?',
+                'sent', 'Abuja, Wuse',
+                'received', '<b>\uD83D\uDCE6 Shipment Created!</b><br><br>Code: <b>XK4M9P</b><br>Item: Nike Air Max 90<br>From: Lagos \u2192 Abuja<br><br>Share this code with the receiver.',
+            ], r: [] },
+            { s: [
+                'system', '\uD83D\uDCE4 You shared code XK4M9P with Chisom',
+            ], r: [
+                'received', '\uD83D\uDCE6 <b>You have a new parcel!</b><br><br><b>Emeka</b> sent you <b>Nike Air Max 90</b><br>From: Lagos, Ikeja \u2192 Abuja, Wuse<br><br>Use /claim XK4M9P to start tracking.',
+                'sent', '/claim XK4M9P',
+                'received', '\u2705 <b>Shipment claimed!</b><br><br><b>Nike Air Max 90</b><br>From: Lagos \u2192 Abuja<br>Status: \uD83D\uDCE6 Prepared<br><br>You will get notified on every update.',
+            ] },
+            { s: [
+                'system', '\uD83D\uDD04 Emeka advanced status to \uD83D\uDE8F At Park',
+                'received', 'Update <b>Nike Air Max 90</b> status?',
+                'sent', '/update XK4M9P',
+                'received', 'Select new status:<br><br>\uD83D\uDCE6 Prepared<br>\uD83D\uDE8F <b>At Park</b> \u2190<br>\uD83D\uDE8C In Transit<br>\uD83C\uDFC1 Arrived<br>\u2705 Delivered',
+                'system', '\u2705 Status updated to \uD83D\uDE8F At Park',
+            ], r: [
+                'received', '\uD83D\uDCEC <b>Update on your parcel</b><br><br><b>Nike Air Max 90</b><br>Status: <span class="status-badge atpark">\uD83D\uDE8F At Park</span><br><br>Your sender is preparing the item for dispatch.',
+            ] },
+            { s: [
+                'system', '\uD83D\uDD04 Emeka advanced status to \uD83D\uDE8C In Transit',
+                'received', 'Update <b>Nike Air Max 90</b> status?',
+                'sent', '/update XK4M9P',
+                'received', 'Select new status:<br><br>\uD83D\uDCE6 Prepared<br>\uD83D\uDE8F At Park<br>\uD83D\uDE8C <b>In Transit</b> \u2190<br>\uD83C\uDFC1 Arrived<br>\u2705 Delivered',
+                'system', '\u2705 Status updated to \uD83D\uDE8C In Transit',
+            ], r: [
+                'received', '\uD83D\uDE8C <b>Your parcel is on the way!</b><br><br><b>Nike Air Max 90</b><br>Status: <span class="status-badge transit">\uD83D\uDE8C In Transit</span><br>From: Lagos \u2192 Abuja<br><br>Estimated: 1\u20132 days',
+            ] },
+            { s: [
+                'system', '\uD83D\uDD04 Emeka advanced status to \u2705 Delivered',
+                'received', 'Update <b>Nike Air Max 90</b> status?',
+                'sent', '/update XK4M9P',
+                'received', 'Select new status:<br><br>\uD83D\uDCE6 Prepared<br>\uD83D\uDE8F At Park<br>\uD83D\uDE8C In Transit<br>\uD83C\uDFC1 Arrived<br>\u2705 <b>Delivered</b> \u2190',
+                'system', '\u2705 Status updated to \u2705 Delivered',
+            ], r: [
+                'received', '\u2705 <b>Delivered!</b><br><br><b>Nike Air Max 90</b><br>Status: <span class="status-badge delivered">\u2705 Delivered</span><br><br>Your parcel has arrived in Abuja. Enjoy your new shoes! \uD83C\uDF89',
+            ] },
+        ];
+
+        // Build flat queue of events
+        var queue = [];
+        demoSteps.forEach(function(step, idx) {
+            queue.push({ t: 'step', i: idx });
+            if (idx === 0) queue.push({ t: 'clear' });
+            step.s.forEach(function(type, j) {
+                if (j % 2 === 0) {
+                    var text = step.s[j + 1];
+                    queue.push({ t: type === 'system' ? 'sys' : 'msg', c: 's', m: text, k: type });
+                }
+            });
+            queue.push({ t: 'gap' });
+            step.r.forEach(function(type, j) {
+                if (j % 2 === 0) {
+                    var text = step.r[j + 1];
+                    queue.push({ t: type === 'system' ? 'sys' : 'msg', c: 'r', m: text, k: type });
+                }
+            });
+            if (idx < demoSteps.length - 1) queue.push({ t: 'wait' });
+        });
+        queue.push({ t: 'done' });
+
+        var qIdx = 0, playing = false, to = null;
+        var typingEls = {};
+
+        function chat(el) { return el === 's' ? senderChat : receiverChat; }
+
+        function clearChat(el) { el.innerHTML = ''; }
+
+        function addMsg(el, type, html) {
+            var d = document.createElement('div');
+            d.className = 'msg ' + type;
+            d.innerHTML = html;
+            el.appendChild(d);
+            requestAnimationFrame(function() { d.classList.add('visible'); });
+            el.scrollTop = el.scrollHeight;
+        }
+
+        function showTyping(el) {
+            var d = document.createElement('div');
+            d.className = 'msg received typing-dots';
+            d.style.alignSelf = 'flex-start';
+            d.innerHTML = '<span></span><span></span><span></span>';
+            el.appendChild(d);
+            el.scrollTop = el.scrollHeight;
+            return d;
+        }
+
+        function rmTyping(el) {
+            var dots = el.querySelector('.typing-dots');
+            if (dots) dots.remove();
+        }
+
+        function updateSteps(idx) {
+            steps.forEach(function(s, i) {
+                s.classList.remove('active', 'done');
+                if (i < idx) s.classList.add('done');
+                if (i === idx) s.classList.add('active');
+            });
+        }
+
+        function setBtn(iconSvg, label) {
+            playIcon.innerHTML = iconSvg;
+            playLabel.textContent = label;
+        }
+
+        function scheduleNext(delay) {
+            if (!playing) return;
+            to = setTimeout(processNext, delay);
+        }
+
+        function processNext() {
+            if (!playing || qIdx >= queue.length) return;
+            var item = queue[qIdx];
+            qIdx++;
+
+            if (item.t === 'clear') {
+                clearChat(chat('s'));
+                clearChat(chat('r'));
+                scheduleNext(100);
+            } else if (item.t === 'step') {
+                updateSteps(item.i);
+                scheduleNext(200);
+            } else if (item.t === 'msg') {
+                var el = chat(item.c);
+                var typingEl = showTyping(el);
+                typingEls[item.c] = typingEl;
+                setTimeout(function() {
+                    rmTyping(el);
+                    addMsg(el, item.k, item.m);
+                    scheduleNext(200);
+                }, 700 + Math.random() * 300);
+            } else if (item.t === 'sys') {
+                addMsg(chat(item.c), item.k, item.m);
+                scheduleNext(500);
+            } else if (item.t === 'gap') {
+                scheduleNext(300);
+            } else if (item.t === 'wait') {
+                scheduleNext(1200);
+            } else if (item.t === 'done') {
+                playing = false;
+                setBtn('<polygon points="5,3 19,12 5,21"/>', 'Replay');
+            }
+        }
+
+        function playDemo() {
+            if (playing) {
+                playing = false;
+                if (to) { clearTimeout(to); to = null; }
+                setBtn('<polygon points="5,3 19,12 5,21"/>', 'Resume');
+                return;
+            }
+            if (qIdx >= queue.length) {
+                qIdx = 0;
+                clearChat(chat('s'));
+                clearChat(chat('r'));
+                updateSteps(0);
+            }
+            playing = true;
+            setBtn('<rect x="6" y="4" width="4" height="16" fill="currentColor"/><rect x="14" y="4" width="4" height="16" fill="currentColor"/>', 'Pause');
+            processNext();
+        }
+
+        function resetDemo() {
+            playing = false;
+            if (to) { clearTimeout(to); to = null; }
+            qIdx = 0;
+            clearChat(chat('s'));
+            clearChat(chat('r'));
+            updateSteps(0);
+            setBtn('<polygon points="5,3 19,12 5,21"/>', 'Play Demo');
+        }
+
+        playBtn.addEventListener('click', playDemo);
+        resetBtn.addEventListener('click', resetDemo);
+
+        setTimeout(playDemo, 1500);
+    </script>
 
 </body>
 </html>
